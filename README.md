@@ -55,9 +55,9 @@ Open http://localhost:8000 in your browser to see the app and Interact with the 
 ## Built With
 
 - [Flask](https://flask.palletsprojects.com/en/1.1.x/) - The web framework used for the backend
-- [Web3.py](https://web3py.readthedocs.io/en/stable/) - Python library for interacting with Ethereum blockchain
-- [Hardhat](https://hardhat.org/) - Ethereum development environment for compiling, testing, deploying, and interacting with smart contracts
-- [Solidity](https://docs.soliditylang.org/en/v0.8.4/) - Ethereum's smart contract programming language
+- [Web3.py](https://web3py.readthedocs.io/en/stable/) - Python library for interacting with Solana blockchain
+- [Hardhat](https://hardhat.org/) - Solana development environment for compiling, testing, deploying, and interacting with smart contracts
+- [Solidity](https://docs.soliditylang.org/en/v0.8.4/) - Ethereum's smart contract programming language forked and adapted for use on Solana
 - [GPIO Simulator](https://pypi.org/project/GPIOSimulator/) - Python library for simulating GPIO pins
 - [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) - Python library for accessing GPIO pins on Raspberry Pi
 

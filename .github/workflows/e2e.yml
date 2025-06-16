@@ -38,21 +38,94 @@ jobs:
  
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
-      # - name: Start App
-      #   run: python app.py & sleep 5
-      # Add your testing steps here
-      # - name: Simulate GPIO 14 ON request
-      #   run: |
-      #     if [[ "${matrix.os}" == "windows-latest" ]]; then
-      #       curl http://localhost:8000/fourteen/on
-      #     else
-      #       curl http://host.docker.internal:8000/fourteen/on
-      #     fi
+  - name: Checkout Code
+    uses: actions/checkout@v4
+
+  - name: Set up Node.js Environment
+    uses: actions/setup-node@v4
+    with:
+      node-version: '18' # Example: Specify a fixed Node.js version
+
+  - name: Install Project Dependencies
+    run: npm ci
+
+  - name: Run Build Process
+    run: npm run build
+
+  - name: Run Unit Tests
+    run: npm test -- --coverage
+
+  - name: Run E2E Tests (Cypress)
+    uses: cypress-io/github-action@v6
+    with:
+      start: npm start
+      wait-on: 'http://localhost:3000'
+
+  - name: Lint Code
+    run: npm run lint
+
+  - name: Format Code (Check Only)
+    run: npm run format -- --check
+
+  - name: Build Docker Image
+    uses: docker/build-push-action@v5
+    with:
+      context: .
+      push: false
+      tags: my-app:latest
+
+  - name: Scan Docker Image for Vulnerabilities
+    uses: aquasecurity/trivy-action@master
+    with:
+      image-ref: 'my-app:latest'
+      format: 'table'
+      exit-code: '1'
+      severity: 'CRITICAL,HIGH'
+
+  - name: Cache Build Artifacts
+    uses: actions/cache@v4
+    with:
+      path: dist/
+      key: ${{ runner.os }}-build-${{ github.sha }}
+
+  - name: Upload Build Artifacts
+    uses: actions/upload-artifact@v4
+    with:
+      name: my-app-build
+      path: dist/
+
+  - name: Deploy to Staging Environment
+    if: github.ref == 'refs/heads/main'
+    run: echo "Deploying to staging..." # Replace with actual deployment command
+    env:
+      STAGING_API_KEY: ${{ secrets.STAGING_API_KEY }}
+
+  - name: Notify Slack on Success
+    if: success()
+    uses: rtCamp/action-slack-notify@v2
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_MESSAGE: 'Deployment to staging successful for ${{ github.ref_name }}!'
+
+  - name: Notify Slack on Failure
+    if: failure()
+    uses: rtCamp/action-slack-notify@v2
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_MESSAGE: 'Workflow failed for ${{ github.ref_name }}. Check logs!'
+
+  - name: Generate Release Notes
+    if: startsWith(github.ref, 'refs/tags/')
+    run: echo "Generating release notes for tag ${{ github.ref_name }}" # Placeholder
+
+  - name: Create GitHub Release
+    if: startsWith(github.ref, 'refs/tags/')
+    uses: softprops/action-gh-release@v1
+    with:
+      tag_name: ${{ github.ref }}
+      name: Release ${{ github.ref }}
+      body: |
+        Automatically generated release from GitHub Actions for tag ${{ github.ref_name }}.
+        See changes [here](https://github.com/${{ github.repository }}/compare/${{ github.event.repository.default_branch }}...${{ github.ref_name }}).
+      draft: false
+      prerelease: false

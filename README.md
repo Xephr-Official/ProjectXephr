@@ -1,5 +1,5 @@
 # ProjectXephr
-The first AI-Powered platform enabling smooth and secure IoT interoperability
+Building a Scalable and Secure IoT-Blockchain Ecosystem
 
 ## Getting Started
 
